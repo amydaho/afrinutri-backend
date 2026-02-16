@@ -54,16 +54,12 @@ Rules:
 - Return ONLY the JSON object, no additional text`;
 
     const { text } = await generateText({
-      model: google('models/gemini-1.5-flash-latest'),
+      model: google('gemini-1.5-flash-latest'),
       messages: [
-        {
-          role: 'system' as const,
-          content: systemPrompt,
-        },
         {
           role: 'user' as const,
           content: [
-            { type: 'text', text: 'Analyze this African dish and provide detailed nutritional information in JSON format.' },
+            { type: 'text', text: systemPrompt + '\n\nAnalyze this African dish and provide detailed nutritional information in JSON format.' },
             { type: 'image', image: imageBase64 },
           ],
         },

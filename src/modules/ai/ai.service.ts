@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { generateText, streamText } from 'ai';
 
 @Injectable()
@@ -7,12 +7,12 @@ export class AiService {
   private model: string;
 
   constructor() {
-    this.model = process.env.AI_MODEL || 'gpt-4-turbo-preview';
+    this.model = process.env.AI_MODEL || 'gemini-1.5-flash';
   }
 
   async generateCompletion(prompt: string, systemPrompt?: string) {
     const { text } = await generateText({
-      model: openai(this.model),
+      model: google(this.model),
       messages: [
         ...(systemPrompt ? [{ role: 'system' as const, content: systemPrompt }] : []),
         { role: 'user' as const, content: prompt },
@@ -24,7 +24,7 @@ export class AiService {
 
   async streamCompletion(prompt: string, systemPrompt?: string) {
     const result = await streamText({
-      model: openai(this.model),
+      model: google(this.model),
       messages: [
         ...(systemPrompt ? [{ role: 'system' as const, content: systemPrompt }] : []),
         { role: 'user' as const, content: prompt },
@@ -54,7 +54,7 @@ Rules:
 - Return ONLY the JSON object, no additional text`;
 
     const { text } = await generateText({
-      model: openai('gpt-4o'),
+      model: google('gemini-1.5-flash'),
       messages: [
         {
           role: 'system' as const,

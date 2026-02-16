@@ -54,7 +54,7 @@ Rules:
 - Return ONLY the JSON object, no additional text`;
 
     const { text } = await generateText({
-      model: openai('gpt-4-vision-preview'),
+      model: openai('gpt-4o'),
       messages: [
         {
           role: 'system' as const,

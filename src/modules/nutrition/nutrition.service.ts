@@ -118,17 +118,11 @@ export class NutritionService {
   async analyzeFoodImage(userId: string, imageBase64: string) {
     const analysis = await this.aiService.analyzeNutrition(imageBase64);
     
-    const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
-      .from('food_scans')
-      .insert({
-        user_id: userId,
-        analysis_result: { analysis },
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return { analysis, scanId: data.id };
+    // Generate a temporary scan ID (UUID)
+    const scanId = `scan_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    
+    // Return analysis without saving to Supabase
+    // TODO: Add Supabase persistence when food_scans table is created
+    return { analysis, scanId };
   }
 }

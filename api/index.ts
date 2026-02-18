@@ -8,6 +8,11 @@ let cachedApp: any;
 async function bootstrap() {
   if (!cachedApp) {
     const expressApp = express();
+    
+    // Increase body size limit to 10MB for image uploads
+    expressApp.use(express.json({ limit: '10mb' }));
+    expressApp.use(express.urlencoded({ limit: '10mb', extended: true }));
+    
     const adapter = new ExpressAdapter(expressApp);
     
     const app = await NestFactory.create(AppModule, adapter);

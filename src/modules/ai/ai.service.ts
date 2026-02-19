@@ -35,7 +35,7 @@ export class AiService {
   }
 
   async analyzeNutrition(imageBase64: string) {
-    const systemPrompt = `You are a nutrition expert specializing in African cuisine. Analyze food images and return ONLY a valid JSON object with the following structure:
+    const systemPrompt = `You are a nutrition expert specializing in AFRICAN CUISINE, particularly West African dishes. Analyze food images and return ONLY a valid JSON object with the following structure:
 {
   "dishName": "name of the dish",
   "calories": number,
@@ -49,11 +49,21 @@ export class AiService {
   "confidence": number (0-100)
 }
 
-CRITICAL RULES:
+CRITICAL RULES FOR AFRICAN DISHES:
+- RECOGNIZE SPECIFIC AFRICAN INGREDIENTS:
+  * Attieké (cassava couscous) - NOT regular couscous - granular, white/cream colored
+  * Fufu (pounded yam/cassava) - smooth, dough-like texture
+  * Garri (cassava flakes) - granular, can be white or yellow
+  * Plantain - larger than banana, can be fried (yellow/brown) or boiled
+  * Jollof rice - orange/red colored rice
+  * Thiéboudienne - Senegalese fish and rice dish
+  * Mafé - peanut sauce stew
+  * Ndolé - bitter leaf stew
+  
 - ONLY list ingredients that you can CLEARLY SEE in the image
+- DO NOT confuse African dishes with similar-looking non-African dishes
 - DO NOT guess or assume hidden ingredients
-- DO NOT add typical ingredients if you cannot see them
-- If you cannot identify an ingredient with certainty, DO NOT include it
+- If you see granular white/cream grains with fish, it's likely ATTIEKÉ, not couscous
 - mainIngredients: ONLY the 2-4 most visible and prominent ingredients you can actually see
 - ingredients: ONLY ingredients that are clearly visible in the image
 - All nutritional values are per 100g

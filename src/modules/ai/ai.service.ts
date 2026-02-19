@@ -44,13 +44,20 @@ export class AiService {
   "fat": number,
   "fiber": number,
   "ingredients": ["ingredient1", "ingredient2", ...],
-  "mainIngredients": ["main1", "main2", ...]
+  "mainIngredients": ["main1", "main2", ...],
+  "confidence": number (0-100)
 }
 
-Rules:
+CRITICAL RULES:
+- ONLY list ingredients that you can CLEARLY SEE in the image
+- DO NOT guess or assume hidden ingredients
+- DO NOT add typical ingredients if you cannot see them
+- If you cannot identify an ingredient with certainty, DO NOT include it
+- mainIngredients: ONLY the 2-4 most visible and prominent ingredients you can actually see
+- ingredients: ONLY ingredients that are clearly visible in the image
 - All nutritional values are per 100g
-- mainIngredients should be the 3-5 most prominent visible ingredients
-- ingredients should include all detected ingredients
+- confidence: Your confidence level (0-100) in the analysis
+- Be conservative - it's better to list fewer ingredients than to hallucinate
 - Return ONLY the JSON object, no additional text`;
 
     const { text } = await generateText({

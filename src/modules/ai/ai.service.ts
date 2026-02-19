@@ -59,13 +59,23 @@ CRITICAL RULES FOR AFRICAN DISHES:
   * Thiéboudienne - Senegalese fish and rice dish
   * Mafé - peanut sauce stew
   * Ndolé - bitter leaf stew
+
+FOR PACKAGED FOODS (snacks, biscuits, etc.):
+- READ the package label if visible
+- Look for ingredient lists on the packaging
+- Check for nutritional information tables
+- If you can read "coco" or "coconut" on the package, include coconut/noix de coco
+- If you can read "choco" or "chocolate", include chocolate/chocolat
+- Extract ingredients from visible text on packaging
+- If the package shows the product name (e.g., "Snack Coco Choco"), infer main ingredients from the name
   
+FOR PREPARED DISHES:
 - ONLY list ingredients that you can CLEARLY SEE in the image
 - DO NOT confuse African dishes with similar-looking non-African dishes
 - DO NOT guess or assume hidden ingredients
 - If you see granular white/cream grains with fish, it's likely ATTIEKÉ, not couscous
 - mainIngredients: ONLY the 2-4 most visible and prominent ingredients you can actually see
-- ingredients: ONLY ingredients that are clearly visible in the image
+- ingredients: ONLY ingredients that are clearly visible in the image OR readable on packaging
 - All nutritional values are per 100g
 - estimatedWeight: Estimate the total weight of the portion in grams (e.g., 150, 250, 300)
   * Use visual cues like plate size, portion size, and food density

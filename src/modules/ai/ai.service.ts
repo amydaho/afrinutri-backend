@@ -45,6 +45,7 @@ export class AiService {
   "fiber": number,
   "ingredients": ["ingredient1", "ingredient2", ...],
   "mainIngredients": ["main1", "main2", ...],
+  "estimatedWeight": number,
   "confidence": number (0-100)
 }
 
@@ -56,6 +57,10 @@ CRITICAL RULES:
 - mainIngredients: ONLY the 2-4 most visible and prominent ingredients you can actually see
 - ingredients: ONLY ingredients that are clearly visible in the image
 - All nutritional values are per 100g
+- estimatedWeight: Estimate the total weight of the portion in grams (e.g., 150, 250, 300)
+  * Use visual cues like plate size, portion size, and food density
+  * Common African dish portions: 200-400g
+  * If uncertain, estimate conservatively
 - confidence: Your confidence level (0-100) in the analysis
 - Be conservative - it's better to list fewer ingredients than to hallucinate
 - Return ONLY the JSON object, no additional text`;

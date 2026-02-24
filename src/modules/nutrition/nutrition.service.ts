@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { AiService } from '../ai/ai.service';
+import { NutritionLookupService } from './nutrition-lookup.service';
 
 @Injectable()
 export class NutritionService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly aiService: AiService,
+    private readonly nutritionLookupService: NutritionLookupService,
   ) {}
 
   async createMeal(userId: string, mealData: any) {
@@ -116,13 +118,92 @@ export class NutritionService {
   }
 
   async analyzeFoodImage(userId: string, imageBase64: string) {
-    const analysis = await this.aiService.analyzeNutrition(imageBase64);
+    // Step 1: Get AI analysis
+    const aiAnalysis = await this.aiService.analyzeNutrition(imageBase64);
     
-    // Generate a temporary scan ID (UUID)
-    const scanId = `scan_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    // Step 2: Enrich with real nutrition data
+    const enrichedData = await this.nutritionLookupService.enrichNutritionData(
+      aiAnalysis.dishName,
+      aiAnalysis.ingredients,
+      {
+        calories: aiAnalysis.calories,
+        protein: aiAnalysis.protein,
+        carbs: aiAnalysis.carbs,
+        fat: aiAnalysis.fat,
+        fiber: aiAnalysis.fiber,
+      },
+    );
+
+    // Step 3: Combine AI analysis with enriched data
+    const analysis = {
+      ...aiAnalysis,
+      calories: enrichedData.calories,
+      protein: enrichedData.protein,
+      carbs: enrichedData.carbs,
+      fat: enrichedData.fat,
+      fiber: enrichedData.fiber,
+      enriched: enrichedData.enriched,
+      dataSources: enrichedData.sources,
+    };
+
+    // Step 4: Save to Supabase
+    const supabase = this.supabaseService.getClient();
     
-    // Return analysis without saving to Supabase
-    // TODO: Add Supabase persistence when food_scans table is created
-    return { analysis, scanId };
+    const { data: scanData, error } = await supabase
+      .from('food_scans')
+      .insert({
+        user_id: userId,
+        image_url: imageBase64.substring(0, 100), // Store preview only
+        analysis_result: analysis,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error saving to Supabase:', error);
+      // Return analysis even if save fails
+      return { 
+        analysis, 
+        scanId: `temp_${Date.now()}`,
+        saved: false,
+      };
+    }
+
+    return { 
+      analysis, 
+      scanId: scanData.id,
+      saved: true,
+    };
+  }
+
+  async getSavedScan(scanId: string) {
+    const supabase = this.supabaseService.getClient();
+    
+    const { data, error } = await supabase
+      .from('food_scans')
+      .select('*')
+      .eq('id', scanId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async searchSimilarDish(dishName: string) {
+    const supabase = this.supabaseService.getClient();
+    
+    // Search for similar dishes in past scans
+    const { data, error } = await supabase
+      .from('food_scans')
+      .select('analysis_result')
+      .ilike('analysis_result->>dishName', `%${dishName}%`)
+      .limit(5);
+
+    if (error) {
+      console.error('Error searching similar dishes:', error);
+      return [];
+    }
+
+    return data.map(d => d.analysis_result);
   }
 }

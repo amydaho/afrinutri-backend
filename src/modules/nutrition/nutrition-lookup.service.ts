@@ -29,7 +29,38 @@ export class NutritionLookupService {
 
   constructor(private readonly supabaseService: SupabaseService) {}
   
-  async searchIngredient(ingredientName: string): Promise<NutritionData | null> {
+  async searchByBarcode(barcode: string): Promise<NutritionData | null> {
+    try {
+      // Search by barcode - most accurate method
+      const response = await axios.get(`${this.OPEN_FOOD_FACTS_API}/product/${barcode}.json`);
+
+      if (response.data.status === 1 && response.data.product) {
+        const product: OpenFoodFactsProduct = response.data.product;
+        
+        const nutritionData = {
+          name: product.product_name || barcode,
+          calories: product.nutriments['energy-kcal_100g'] || 0,
+          protein: product.nutriments.proteins_100g || 0,
+          carbs: product.nutriments.carbohydrates_100g || 0,
+          fat: product.nutriments.fat_100g || 0,
+          fiber: product.nutriments.fiber_100g || 0,
+          source: 'Open Food Facts (Barcode)',
+        };
+
+        // Save to cache
+        await this.saveToCache(nutritionData);
+
+        return nutritionData;
+      }
+
+      return null;
+    } catch (error) {
+      console.error(`Error searching barcode ${barcode}:`, error.message);
+      return null;
+    }
+  }
+
+  async searchIngredient(ingredientName: string, brand?: string): Promise<NutritionData | null> {
     const normalized = ingredientName.toLowerCase().trim();
     
     try {
@@ -39,10 +70,12 @@ export class NutritionLookupService {
         return cachedData;
       }
 
-      // Step 2: Search Open Food Facts
+      // Step 2: Search Open Food Facts with brand if available
+      const searchTerms = brand ? `${brand} ${ingredientName}` : ingredientName;
+      
       const response = await axios.get(`${this.OPEN_FOOD_FACTS_API}/search`, {
         params: {
-          search_terms: ingredientName,
+          search_terms: searchTerms,
           search_simple: 1,
           action: 'process',
           json: 1,
@@ -131,6 +164,7 @@ export class NutritionLookupService {
       fat: number;
       fiber: number;
     },
+    brand?: string,
   ): Promise<{
     enriched: boolean;
     calories: number;
@@ -140,8 +174,8 @@ export class NutritionLookupService {
     fiber: number;
     sources: string[];
   }> {
-    // Try to find nutrition data for the dish itself first
-    const dishData = await this.searchIngredient(dishName);
+    // Try to find nutrition data for the dish itself first (with brand if available)
+    const dishData = await this.searchIngredient(dishName, brand);
     
     if (dishData) {
       return {

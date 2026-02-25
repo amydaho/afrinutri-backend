@@ -121,18 +121,41 @@ export class NutritionService {
     // Step 1: Get AI analysis
     const aiAnalysis = await this.aiService.analyzeNutrition(imageBase64);
     
-    // Step 2: Enrich with real nutrition data
-    const enrichedData = await this.nutritionLookupService.enrichNutritionData(
-      aiAnalysis.dishName,
-      aiAnalysis.ingredients,
-      {
-        calories: aiAnalysis.calories,
-        protein: aiAnalysis.protein,
-        carbs: aiAnalysis.carbs,
-        fat: aiAnalysis.fat,
-        fiber: aiAnalysis.fiber,
-      },
-    );
+    // Step 2: For packaged products, try barcode lookup first
+    let enrichedData;
+    
+    if (aiAnalysis.barcode) {
+      console.log(`Searching by barcode: ${aiAnalysis.barcode}`);
+      const barcodeData = await this.nutritionLookupService.searchByBarcode(aiAnalysis.barcode);
+      
+      if (barcodeData) {
+        enrichedData = {
+          enriched: true,
+          calories: barcodeData.calories,
+          protein: barcodeData.protein,
+          carbs: barcodeData.carbs,
+          fat: barcodeData.fat,
+          fiber: barcodeData.fiber,
+          sources: [barcodeData.source],
+        };
+      }
+    }
+    
+    // Step 3: If no barcode or barcode search failed, use standard enrichment
+    if (!enrichedData) {
+      enrichedData = await this.nutritionLookupService.enrichNutritionData(
+        aiAnalysis.dishName,
+        aiAnalysis.ingredients,
+        {
+          calories: aiAnalysis.calories,
+          protein: aiAnalysis.protein,
+          carbs: aiAnalysis.carbs,
+          fat: aiAnalysis.fat,
+          fiber: aiAnalysis.fiber,
+        },
+        aiAnalysis.productBrand, // Pass brand for better search
+      );
+    }
 
     // Step 3: Combine AI analysis with enriched data
     const analysis = {

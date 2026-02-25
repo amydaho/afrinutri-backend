@@ -46,7 +46,9 @@ export class AiService {
   "ingredients": ["ingredient1", "ingredient2", ...],
   "mainIngredients": ["main1", "main2", ...],
   "estimatedWeight": number,
-  "confidence": number (0-100)
+  "confidence": number (0-100),
+  "productBrand": "brand name (only for packaged products)",
+  "barcode": "barcode number if visible (only for packaged products)"
 }
 
 CRITICAL RULES - APPLY INTELLIGENTLY BASED ON IMAGE TYPE:
@@ -57,12 +59,13 @@ CRITICAL RULES - APPLY INTELLIGENTLY BASED ON IMAGE TYPE:
    - Is it BOTH (packaged product with visible contents)?
 
 2. FOR PACKAGED PRODUCTS (snacks, biscuits, drinks, etc.):
-   - READ all visible text on packaging (product name, labels, ingredients list)
-   - EXTRACT ingredients from packaging text
-   - INFER main ingredients from product name (e.g., "Coco Choco" → coconut, chocolate)
-   - Look for nutritional tables on packaging
-   - If contents are visible through packaging, describe what you see
-   - Combine packaging info + visual contents for complete analysis
+   - READ all visible text on packaging (brand name, product name, barcode if visible)
+   - EXTRACT the exact product name and brand from the label
+   - Look for ingredients list on packaging - if visible, extract it exactly as written
+   - Look for nutritional tables on packaging - if visible, use those exact values
+   - DO NOT infer or guess ingredients from product name alone
+   - If ingredients list is NOT visible, return only what you can see and mark confidence as low
+   - The extracted product name will be used for internet lookup to get accurate data
 
 3. FOR PREPARED AFRICAN DISHES:
    - RECOGNIZE SPECIFIC AFRICAN INGREDIENTS:

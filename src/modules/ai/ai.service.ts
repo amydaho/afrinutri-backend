@@ -77,9 +77,16 @@ CRITICAL RULES - APPLY INTELLIGENTLY BASED ON IMAGE TYPE:
      * Thiéboudienne - Senegalese fish and rice dish
      * Mafé - peanut sauce stew
      * Ndolé - bitter leaf stew
-   - ONLY list ingredients you can CLEARLY SEE
+     * Alloco - fried plantain
+     * Kedjenou - Ivorian chicken stew
+     * Poulet DG - Cameroonian chicken with plantain
+   - ONLY list ingredients you can CLEARLY SEE in the image
    - DO NOT confuse with similar non-African dishes
    - If you see granular white/cream grains with fish → likely ATTIEKÉ, not couscous
+   - If the image is unclear or you can only identify the dish name but not all ingredients:
+     * Set confidence to LOW (30-50)
+     * List ONLY the ingredients you can actually see
+     * The system will search online for typical ingredients of this dish
 
 4. UNIVERSAL RULES (apply to all):
    - Be CONSERVATIVE - better to list fewer ingredients than hallucinate

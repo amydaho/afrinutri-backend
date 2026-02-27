@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { AiService } from '../ai/ai.service';
 import { NutritionLookupService } from './nutrition-lookup.service';
+import { AfricanDishesService } from './african-dishes.service';
 
 @Injectable()
 export class NutritionService {
@@ -9,6 +10,7 @@ export class NutritionService {
     private readonly supabaseService: SupabaseService,
     private readonly aiService: AiService,
     private readonly nutritionLookupService: NutritionLookupService,
+    private readonly africanDishesService: AfricanDishesService,
   ) {}
 
   async createMeal(userId: string, mealData: any) {
@@ -141,23 +143,55 @@ export class NutritionService {
       }
     }
     
-    // Step 3: If no barcode or barcode search failed, use standard enrichment
+    // Step 3: If no barcode or barcode search failed, check confidence level
     if (!enrichedData) {
-      enrichedData = await this.nutritionLookupService.enrichNutritionData(
-        aiAnalysis.dishName,
-        aiAnalysis.ingredients,
-        {
-          calories: aiAnalysis.calories,
-          protein: aiAnalysis.protein,
-          carbs: aiAnalysis.carbs,
-          fat: aiAnalysis.fat,
-          fiber: aiAnalysis.fiber,
-        },
-        aiAnalysis.productBrand, // Pass brand for better search
-      );
+      // For African dishes with low confidence, search for typical recipe
+      if (!aiAnalysis.barcode && aiAnalysis.confidence && aiAnalysis.confidence < 60) {
+        console.log(`Low confidence (${aiAnalysis.confidence}%) for ${aiAnalysis.dishName}, searching for typical African recipe...`);
+        
+        const africanDishData = await this.africanDishesService.enrichWithTypicalIngredients(
+          aiAnalysis.dishName,
+          aiAnalysis.ingredients || [],
+          {
+            calories: aiAnalysis.calories,
+            protein: aiAnalysis.protein,
+            carbs: aiAnalysis.carbs,
+            fat: aiAnalysis.fat,
+            fiber: aiAnalysis.fiber,
+          },
+        );
+
+        enrichedData = {
+          enriched: africanDishData.enriched,
+          calories: africanDishData.calories,
+          protein: africanDishData.protein,
+          carbs: africanDishData.carbs,
+          fat: africanDishData.fat,
+          fiber: africanDishData.fiber,
+          sources: [africanDishData.source],
+        };
+
+        // Update ingredients with typical ones
+        aiAnalysis.ingredients = africanDishData.ingredients;
+        aiAnalysis.mainIngredients = africanDishData.mainIngredients;
+      } else {
+        // Standard enrichment for high confidence or non-African dishes
+        enrichedData = await this.nutritionLookupService.enrichNutritionData(
+          aiAnalysis.dishName,
+          aiAnalysis.ingredients,
+          {
+            calories: aiAnalysis.calories,
+            protein: aiAnalysis.protein,
+            carbs: aiAnalysis.carbs,
+            fat: aiAnalysis.fat,
+            fiber: aiAnalysis.fiber,
+          },
+          aiAnalysis.productBrand, // Pass brand for better search
+        );
+      }
     }
 
-    // Step 3: Combine AI analysis with enriched data
+    // Step 4: Combine AI analysis with enriched data
     const analysis = {
       ...aiAnalysis,
       calories: enrichedData.calories,

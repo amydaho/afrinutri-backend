@@ -55,4 +55,23 @@ export class NutritionController {
       ...result,
     };
   }
+
+  @Post('re-search')
+  async reSearchByName(@Body() body: { 
+    dishName: string; 
+    currentIngredients: string[];
+    currentNutrition: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    };
+  }) {
+    return this.nutritionService.reSearchByDishName(
+      body.dishName,
+      body.currentIngredients,
+      body.currentNutrition,
+    );
+  }
 }

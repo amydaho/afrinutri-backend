@@ -263,4 +263,60 @@ export class NutritionService {
 
     return data.map(d => d.analysis_result);
   }
+
+  async reSearchByDishName(
+    dishName: string,
+    currentIngredients: string[],
+    currentNutrition: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    },
+  ) {
+    console.log(`Re-searching nutrition data for corrected dish name: ${dishName}`);
+
+    // Try African dishes database first
+    const africanDishData = await this.africanDishesService.enrichWithTypicalIngredients(
+      dishName,
+      currentIngredients,
+      currentNutrition,
+    );
+
+    if (africanDishData.enriched) {
+      return {
+        enriched: true,
+        dishName,
+        ingredients: africanDishData.ingredients,
+        mainIngredients: africanDishData.mainIngredients,
+        calories: africanDishData.calories,
+        protein: africanDishData.protein,
+        carbs: africanDishData.carbs,
+        fat: africanDishData.fat,
+        fiber: africanDishData.fiber,
+        source: africanDishData.source,
+      };
+    }
+
+    // Fallback to Open Food Facts
+    const enrichedData = await this.nutritionLookupService.enrichNutritionData(
+      dishName,
+      currentIngredients,
+      currentNutrition,
+    );
+
+    return {
+      enriched: enrichedData.enriched,
+      dishName,
+      ingredients: currentIngredients,
+      mainIngredients: currentIngredients.slice(0, 3),
+      calories: enrichedData.calories,
+      protein: enrichedData.protein,
+      carbs: enrichedData.carbs,
+      fat: enrichedData.fat,
+      fiber: enrichedData.fiber,
+      source: enrichedData.sources.join(', '),
+    };
+  }
 }

@@ -43,4 +43,16 @@ export class NutritionController {
   async analyzeFoodImage(@Body() body: { userId: string; image: string }) {
     return this.nutritionService.analyzeFoodImage(body.userId, body.image);
   }
+
+  // TEMPORARY TEST ENDPOINT - Remove in production
+  @Post('test-upload')
+  async testUpload(@Body() body: { image: string }) {
+    const userId = 'test-user-' + Date.now();
+    const result = await this.nutritionService.analyzeFoodImage(userId, body.image);
+    return {
+      success: true,
+      userId,
+      ...result,
+    };
+  }
 }
